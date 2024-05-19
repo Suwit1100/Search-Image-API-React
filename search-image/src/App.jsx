@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import './App.css'
 import { FaSearch } from "react-icons/fa";
-
+import Pagination from '@mui/material/Pagination';
 function App() {
   const [word, setWord] = useState('');
   const [dataimage, setDataimage] = useState([]);
+  const [countpage, setCountpage] = useState(0);
 
   function clicksearch() {
     if (!word) {
@@ -15,12 +16,13 @@ function App() {
         .then(response => response.json())
         .then(data => {
           // ทำสิ่งที่ต้องการกับข้อมูลที่ได้
-          console.log(data.results);
+          console.log(data);
           const result = data.results;
           if (result.length === 0) {
             alert("ไม่พบข้อมูลรูปภาพ! กรุณาลองคำใหม่")
           }
           setDataimage(result)
+          setCountpage(data.total_pages)
         })
         .catch(error => {
           console.error('เกิดข้อผิดพลาดในการดึงข้อมูล:', error);
@@ -28,11 +30,31 @@ function App() {
     }
   }
 
+  // เปลี่ยนหน้า
+  function handleChangePage(e, page) {
+    console.log(page);
+    const client_id = "YguB8p72O9UaAD2bhLhHcdWotiORcSwdE13fCfw2_HQ";
+    fetch(`https://api.unsplash.com/search/photos?client_id=${client_id}&query=${word}&per_page=12&page=${page}`)
+      .then(response => response.json())
+      .then(data => {
+        console.log(data);
+        const result = data.results;
+        setDataimage(result)
+        setCountpage(data.total_pages)
+      })
+      .catch(error => {
+        console.error('เกิดข้อผิดพลาดในการดึงข้อมูล:', error);
+      });
+
+  }
+
   return (
     <div className="container">
-      <div className="row mt-5">
-        <div className="col-12 ">
-          ระบบค้นหารูปภาพด้วย API
+      <div className="row mt-3">
+        <div className="col-12 text-center mb-3">
+          <h3>
+            ระบบค้นหารูปภาพด้วย API
+          </h3>
         </div>
         <div className="col-12">
           <div className="input-group input-group-lg">
@@ -51,6 +73,13 @@ function App() {
             </div>
           );
         })}
+      </div>
+      <div className="row my-2">
+        <div className="col-12 d-flex justify-content-center">
+          {countpage === 0 ? ''
+            : (<Pagination count={countpage} color="primary"
+              onChange={handleChangePage} />)}
+        </div>
       </div>
     </div>
   )
